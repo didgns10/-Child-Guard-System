@@ -1,0 +1,398 @@
+import RPi.GPIO as GPIO
+from mfrc522 import SimpleMFRC522
+import time
+import mfrc522
+import sys
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(23,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(26,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(22, GPIO.OUT)
+GPIO.setup(17, GPIO.IN)
+GPIO.setup(12,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(24,GPIO.OUT)
+GPIO.setup(27,GPIO.OUT)
+GPIO.setup(21, GPIO.OUT)
+GPIO.setup(2,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(3,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(4,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(18,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
+
+ck_pwm = GPIO.PWM(24,1000)
+
+pin1 = 6
+pin2 = 13
+EN1 = 5
+
+GPIO.setup(pin1,GPIO.OUT)
+GPIO.setup(pin2,GPIO.OUT)
+GPIO.setup(EN1,GPIO.OUT)
+GPIO.output(21,False)
+
+pwm1 = GPIO.PWM(EN1, 50)
+pwm1.start(0)
+
+reader = SimpleMFRC522()
+
+a=0
+b=0
+c=0
+d=0
+f=0
+door_button=0
+open_button=0
+sidong=0
+y=1
+distance = 0
+
+def sensor(self):
+	global distance
+	while True:
+		GPIO.output(22, False)
+		time.sleep(0.5)
+		
+		GPIO.output(22, True)
+		time.sleep(0.00001)
+		
+		GPIO.output(22, False)
+		
+		while GPIO.input(17) == 0 :
+			pulse_start = time.time()
+		
+		while GPIO.input(17) == 1 :
+			pulse_end = time.time()
+		
+		pulse_duration = pulse_end - pulse_start		
+		distance = pulse_duration * 17000		
+		distance = round(distance, 2)
+	
+		#print ("Distance : ", distance, "cm")
+		time.sleep(1)
+	return distance
+
+
+
+t5 = threading.Thread(target=sensor,args=(1,))
+t5.start()
+
+class RequestHandler_httpd(BaseHTTPRequestHandler):
+  def do_GET(self):
+    global a
+    if (a == 1) and (b == 1) and (c == 1) and (d == 1) :
+      messagetosend = bytes((str('Pororo on  Pickachu on  Dooly on  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 0) and (c == 0) and (d == 0) :
+      messagetosend = bytes((str('Pororo off  Pickachu off  Dooly off  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 0) and (c == 0) and (d == 1) :
+      messagetosend = bytes((str('Pororo off  Pickachu off  Dooly off  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 0) and (c == 1) and (d == 0) :
+      messagetosend = bytes((str('Pororo off  Pickachu off  Dooly on  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 1) and (c == 0) and (d == 0) :
+      messagetosend = bytes((str('Pororo off  Pickachu on  Dooly off  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 1) and (b == 0) and (c == 0) and (d == 0) :
+      messagetosend = bytes((str('Pororo on  Pickachu off  Dooly off  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 1) and (b == 1) and (c == 0) and (d == 0) :
+      messagetosend = bytes((str('Pororo on  Pickachu on  Dooly off  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 1) and (b == 0) and (c == 1) and (d == 0) :
+      messagetosend = bytes((str('Pororo on  Pickachu off  Dooly on  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 1) and (b == 0) and (c == 0) and (d == 1) :
+      messagetosend = bytes((str('Pororo on  Pickachu off  Dooly off  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 1) and (c == 1) and (d == 0) :
+      messagetosend = bytes((str('Pororo off  Pickachu on  Dooly on  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 1) and (c == 0) and (d == 1) :
+      messagetosend = bytes((str('Pororo off  Pickachu on  Dooly off  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 0) and (c == 1) and (d == 1) :
+      messagetosend = bytes((str('Pororo off  Pickachu off  Dooly on  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 1) and (b == 1) and (c == 1) and (d == 0) :
+      messagetosend = bytes((str('Pororo on  Pickachu on  Dooly on  Jammambo off')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 1) and (b == 1) and (c == 0) and (d == 1) :
+      messagetosend = bytes((str('pororo on  Pickachu on  Dooly off  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 1) and (b == 0) and (c == 1) and (d == 1) :
+      messagetosend = bytes((str('Pororo on  Pickachu off  Dooly on  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    elif (a == 0) and (b == 1) and (c == 1) and (d == 1) :
+      messagetosend = bytes((str('Pororo off  Pickachu on  Dooly on  Jammambo on')),"utf")
+      self.send_response(200)
+      self.send_header('Content-Type', 'text/plain')
+      self.send_header('Content-Length', len(messagetosend))
+      self.end_headers()
+      self.wfile.write(messagetosend)
+    return
+
+def go(self):
+	time.sleep(15)
+	while True:
+		server_address_httpd = ('192.168.0.42',8082)
+		httpd = HTTPServer(server_address_httpd, RequestHandler_httpd)
+		print('Sarting server:')
+		httpd.serve_forever()
+		time.sleep(2)
+
+t2 = threading.Thread(target=go,args=(1,))
+t2.start()
+
+
+def tag(self):
+	while True:
+		global a
+		global b
+		global c
+		global d
+		global f
+		global y
+		y=1
+		id, text = reader.read()
+		if id == 923946966163:          
+			if a == 0:
+				a=1
+				print("Pororo : get into the car") 
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()             
+			else:
+				a=0
+				print("Pororo :get out of the car")
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()             
+		elif id == 926061091868 :
+			if b == 0:
+				b=1
+				print("Pickachu :get into the car") 
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()             
+			else:
+				b=0
+				print("Pickachu :get out of the car")   
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()       
+		elif id == 856317811967 :
+			if c == 0:
+				c=1
+				print("Dooly :get into the car")  
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()               
+			else:
+				c=0
+				print("Dooly :get out of the car") 
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()          
+		elif id == 648901483732 :
+			if d == 0:
+				d=1
+				print("Jammambo :get into the car")  
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()               
+			else:
+				d=0
+				print("jammambo :get out of the car") 
+				ck_pwm.start(60)
+				time.sleep(0.07)
+				ck_pwm.stop()         
+		f=a+b+c+d
+		print("number of people in the car:",f)
+		time.sleep(1.5)
+	return f            
+
+def my_callback(channel):
+
+	global f
+	global door_button
+	door_button=1
+
+def my_callback1(channel):
+
+	global f
+	global open_button
+	open_button=1
+
+                       
+GPIO.add_event_detect(23,GPIO.FALLING,callback=my_callback)
+GPIO.add_event_detect(26,GPIO.FALLING,callback=my_callback1)
+
+t = threading.Thread(target=tag,args=(y,))
+t.start()
+
+
+try:
+	while True:
+		if GPIO.input(12) == 1 :
+			if GPIO.input(2) == 1 and GPIO.input(3) == 1 and GPIO.input(4) == 1 and GPIO.input(18) == 1:
+				GPIO.output(21,True)
+				if door_button == 1:
+					print("closedoor sidong on")
+					pwm1.ChangeDutyCycle(32)
+					GPIO.output(pin1, True)
+					GPIO.output(pin2, False)
+					time.sleep(1.7)
+					GPIO.output(pin1, False)
+					GPIO.output(pin2, False)
+					time.sleep(1)				
+					door_button=0
+	
+				if open_button == 1:
+					print("opendoor sidong on")
+					pwm1.ChangeDutyCycle(43)
+					GPIO.output(pin1, False)
+					GPIO.output(pin2, True)
+					time.sleep(1.7)
+					GPIO.output(pin1, False)
+					GPIO.output(pin2, False)
+					time.sleep(1)				
+					open_button=0
+				if f != 0 :
+					if distance > 10.00:
+						time.sleep(5)
+						GPIO.output(22, False)
+						time.sleep(0.5)
+						GPIO.output(22, True)
+						time.sleep(0.00001)	
+						GPIO.output(22, False)	
+						while GPIO.input(17) == 0 :
+							pulse_start = time.time()
+						while GPIO.input(17) == 1 :
+							pulse_end = time.time()	
+						pulse_duration = pulse_end - pulse_start		
+						distance = pulse_duration * 17000		
+						distance = round(distance, 2)
+						print ("Distance : ", distance, "cm")
+						if distance > 10.00:
+							print ("Help")
+							GPIO.output(27,True)
+							ck_pwm.start(50)
+							time.sleep(1)
+							ck_pwm.stop()
+							GPIO.output(27,False)
+						elif distance < 10.00:
+							print ("safe")
+			else :
+				while True:
+					print("belt off")
+					GPIO.output(21,True)
+					ck_pwm.start(20)
+					time.sleep(0.5)
+					GPIO.output(21,False)
+					ck_pwm.stop()
+					time.sleep(0.5)
+					if GPIO.input(2) == 1 and GPIO.input(3) == 1 and GPIO.input(4) == 1 and GPIO.input(18) == 1:
+						break
+				
+		else :
+			GPIO.output(21,False)
+			if door_button == 1:
+				if f == 0 :
+					print("closedoor sidong off")
+					pwm1.ChangeDutyCycle(32)
+					GPIO.output(pin1, True)
+					GPIO.output(pin2, False)
+					time.sleep(1.7)
+					GPIO.output(pin1, False)
+					GPIO.output(pin2, False)
+					time.sleep(1)				
+					door_button=0
+				else :
+					time.sleep(0.5)
+					GPIO.output(27,True)
+					ck_pwm.start(50)
+					print("people in the car:",f)
+					time.sleep(1)
+					ck_pwm.stop()
+					GPIO.output(27,False)
+					door_button=0 
+			if open_button == 1:
+				print("opendoor sidong off")
+				pwm1.ChangeDutyCycle(43)
+				GPIO.output(pin1, False)
+				GPIO.output(pin2, True)
+				time.sleep(1.7)
+				GPIO.output(pin1, False)
+				GPIO.output(pin2, False)
+				time.sleep(1)				
+				open_button=0
+		time.sleep(2)
+										  
+finally:
+    GPIO.cleanup()
+    pwm1.stop()
+
